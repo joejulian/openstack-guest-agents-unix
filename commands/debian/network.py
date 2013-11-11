@@ -29,6 +29,7 @@ debian/ubuntu network helper module
 
 import logging
 import os
+import re
 import subprocess
 import time
 from cStringIO import StringIO
@@ -46,6 +47,24 @@ INTERFACE_HEADER = \
 auto lo
 iface lo inet loopback
 """.lstrip('\n')
+
+
+def existing_vifs():
+    """ Returns dict of existing IPs with VIFs. """
+    ipaddrs = {}
+    with open(INTERFACE_FILE, "r") as fyl:
+        _device_in_line, _ipaddr_in_line, device = None, None, None
+
+        for _line in fyl.readlines():
+            _device_in_line = re.match("^iface\s*([A-Za-z0-9]*)\s*", _line)
+            _ipaddr_in_line = re.match("\s+address\s*([\:\.A-Za-z0-9]*)\s*", _line)
+            if _device_in_line:
+                device = _device_in_line.group(1)
+            if device and device not in ipaddrs and _ipaddr_in_line:
+                ipaddrs[device] = _ipaddr_in_line.group(1)
+                device, _device_in_line, _ipaddr_in_line = None, None, None
+
+    return ipaddrs
 
 
 def configure_network(hostname, interfaces):
