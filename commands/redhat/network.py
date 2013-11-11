@@ -30,6 +30,7 @@ redhat/centos network helper module
 import os
 import time
 import glob
+import re
 import subprocess
 import logging
 from cStringIO import StringIO
@@ -40,6 +41,25 @@ NETWORK_FILE = "/etc/sysconfig/network"
 NETCONFIG_DIR = "/etc/sysconfig/network-scripts"
 INTERFACE_FILE = "ifcfg-%s"
 ROUTE_FILE = "route-%s"
+
+
+def existing_vifs():
+    """ Returns dict of existing IPs with VIFs. """
+    ipaddrs = {}
+    for filepath in glob.glob(NETCONFIG_DIR + "/ifcfg-*"):
+        ipaddr, device = None, None
+        with open(filepath, "r") as fyl:
+            for _line in fyl.readlines():
+                _device_in_line = re.match("^DEVICE=(.*)", _line)
+                _ipaddr_in_line = re.match("^IPADDR=(.*)", _line)
+                if _device_in_line:
+                    device = _device_in_line.group(1)
+                if _ipaddr_in_line:
+                    ipaddr = _ipaddr_in_line.group(1)
+                if ipaddr and device:
+                    ipaddrs[device] = ipaddr
+                    break
+    return ipaddrs
 
 
 def configure_network(hostname, interfaces):
