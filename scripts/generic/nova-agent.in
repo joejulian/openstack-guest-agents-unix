@@ -47,16 +47,23 @@ then
   . /etc/rc.d/init.d/functions
 fi
 
+prog="nova-agent"
+
+if [ -e "@sysconfdir@/sysconfig/${prog}" ]
+then
+  . @sysconfdir@/sysconfig/${prog}
+fi
+
 prefix="@prefix@"
 exec_prefix="@exec_prefix@"
 sbindir="@sbindir@"
-datadir="@datarootdir@/nova-agent"
+datadir="@datarootdir@/${prog}"
 reallibdir="@prefix@/share/@PACKAGE@/@PACKAGE_VERSION@/lib"
 
-nova_agent="${sbindir}/nova-agent"
+nova_agent="${sbindir}/${prog}"
 agent_config="@prefix@/share/@PACKAGE@/nova-agent.py"
-pidfile="/var/run/nova-agent.pid"
-logfile="/var/log/nova-agent.log"
+pidfile="/var/run/${prog}.pid"
+logfile="/var/log/${prog}.log"
 loglevel="debug"
 
 #####
